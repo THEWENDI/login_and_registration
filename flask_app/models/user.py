@@ -1,9 +1,11 @@
-from unittest import result
 from flask_app.config.mysqlconnection import connectToMySQL
 import re	# the regex module
 # create a regular expression object that we'll use later   
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
+from flask_app import app
 from flask import flash
+from flask_bcrypt import Bcrypt
+bcrypt = Bcrypt(app)
 
 class User:
     db = "login_registration"
@@ -69,9 +71,14 @@ class User:
             flash("Passwords don't match","register")
         return is_valid
 
-    # @staticmethod
-    # def validate_login(user):
-    #     is_valid = True
-    #     query = "SELECT * FROM users WHERE email = %(email)s;"
-    #     results = connectToMySQL(User.db).query_db(query,user)
-    #     return is_valid
+    @staticmethod
+    def validate_login(formdata):
+        is_valid = True
+        user = User.get_by_email(formdata)
+        if not user:
+            flash("Invalid Login","login")
+            is_valid= False
+        elif not bcrypt.check_password_hash(user.password,formdata['password']):
+            flash("Invalid Login","login")
+            is_valid= False
+        return is_valid

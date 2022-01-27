@@ -26,14 +26,9 @@ def register():
 
 @app.route('/login',methods=['POST'])
 def login():
-    user = User.get_by_email(request.form)
-    if not user:
-        flash("Invalid Email","login")
+    if not User.validate_login(request.form):
         return redirect('/')
-    user.password = bcrypt.generate_password_hash(request.form['password'])
-    # ???????not working
-    if not bcrypt.check_password_hash(user.password,request.form['password']):
-        flash("Invalid Password","login")
+    user = User.get_by_email(request.form)
     session['user_id'] = user.id
     # ['user_id'] user_id just a var you make , make sure to use the same var name 
     return redirect('/dashboard')
